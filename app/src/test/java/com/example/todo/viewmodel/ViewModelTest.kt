@@ -1,7 +1,10 @@
 package com.example.todo.viewmodel
 
 import android.app.Application
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.LiveData
 import com.example.todo.di.appTestModule
+import com.example.todo.livedata.LiveDataTestObserver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
@@ -19,10 +22,14 @@ import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
 
 @ExperimentalCoroutinesApi
-internal class ViewModelTest : KoinTest{
+internal abstract class ViewModelTest : KoinTest{
 
-    @get: Rule
+    @get:Rule
     val mockitoRule : MockitoRule = MockitoJUnit.rule()
+
+    @get:Rule
+    val instantExecutorRule = InstantTaskExecutorRule()
+
 
     @Mock
     private lateinit var context : Application
@@ -45,5 +52,11 @@ internal class ViewModelTest : KoinTest{
         Dispatchers.resetMain()// MainDispatcher를 초기화 해주어야 메모리 누수가 발생하지 않음
     }
 
+    protected fun <T> LiveData<T>.test(): LiveDataTestObserver<T> {
+        val testObserver = LiveDataTestObserver<T>()
+        observeForever(testObserver)
+
+        return testObserver
+    }
 
 }
